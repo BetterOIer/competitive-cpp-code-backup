@@ -1,0 +1,822 @@
+#ifndef _GLIBCXX_IOSTREAM
+#define _GLIBCXX_IOSTREAM 1
+#pragma GCC system_header
+#include <bits/c++config.h>
+/** @file include/ostream
+ *  This is a Standard C++ Library header.
+ */
+#ifndef _GLIBCXX_OSTREAM
+#define _GLIBCXX_OSTREAM 1
+
+#pragma GCC system_header
+
+#include <ios>
+#include <bits/ostream_insert.h>
+
+namespace std _GLIBCXX_VISIBILITY(default)
+{
+_GLIBCXX_BEGIN_NAMESPACE_VERSION
+
+  /**
+   *  @brief  Template class basic_ostream.
+   *  @ingroup io
+   *
+   *  @tparam _CharT  Type of character stream.
+   *  @tparam _Traits  Traits for character type, defaults to
+   *                   char_traits<_CharT>.
+   *
+   *  This is the base class for all output streams.  It provides text
+   *  formatting of all builtin types, and communicates with any class
+   *  derived from basic_streambuf to do the actual output.
+  */
+  template<typename _CharT, typename _Traits>
+    class basic_ostream : virtual public basic_ios<_CharT, _Traits>
+    {
+    public:
+      
+      typedef _CharT			 		char_type;
+      typedef typename _Traits::int_type 		int_type;
+      typedef typename _Traits::pos_type 		pos_type;
+      typedef typename _Traits::off_type 		off_type;
+      typedef _Traits			 		traits_type;
+
+      
+      typedef basic_streambuf<_CharT, _Traits> 		__streambuf_type;
+      typedef basic_ios<_CharT, _Traits>		__ios_type;
+      typedef basic_ostream<_CharT, _Traits>		__ostream_type;
+      typedef num_put<_CharT, ostreambuf_iterator<_CharT, _Traits> >
+      							__num_put_type;
+      typedef ctype<_CharT>	      			__ctype_type;
+
+      /**
+       *  @brief  Base constructor.
+       *
+       *  This ctor is almost never called by the user directly, rather from
+       *  derived classes' initialization lists, which pass a pointer to
+       *  their own stream buffer.
+      */
+      explicit
+      basic_ostream(__streambuf_type* __sb)
+      { this->init(__sb); }
+
+      /**
+       *  @brief  Base destructor.
+       *
+       *  This does very little apart from providing a virtual base dtor.
+      */
+      virtual
+      ~basic_ostream() { }
+
+      class sentry;
+      friend class sentry;
+      /**
+       *  @brief  Interface for manipulators.
+       *
+       *  Manipulators such as @c std::endl and @c std::hex use these
+       *  functions in constructs like "std::cout << std::endl".  For more
+       *  information, see the iomanip header.
+      */
+      __ostream_type&
+      operator<<(__ostream_type& (*__pf)(__ostream_type&))
+      {
+	return __pf(*this);
+      }
+
+      __ostream_type&
+      operator<<(__ios_type& (*__pf)(__ios_type&))
+      {
+	
+	
+	
+	__pf(*this);
+	return *this;
+      }
+
+      __ostream_type&
+      operator<<(ios_base& (*__pf) (ios_base&))
+      {
+	
+	
+	
+	__pf(*this);
+	return *this;
+      }
+      /**
+       *  @name Inserters
+       *
+       *  All the @c operator<< functions (aka <em>formatted output
+       *  functions</em>) have some common behavior.  Each starts by
+       *  constructing a temporary object of type std::basic_ostream::sentry.
+       *  This can have several effects, concluding with the setting of a
+       *  status flag; see the sentry documentation for more.
+       *
+       *  If the sentry status is good, the function tries to generate
+       *  whatever data is appropriate for the type of the argument.
+       *
+       *  If an exception is thrown during insertion, ios_base::badbit
+       *  will be turned on in the stream's error state without causing an
+       *  ios_base::failure to be thrown.  The original exception will then
+       *  be rethrown.
+      */
+
+      
+      /**
+       *  @brief Integer arithmetic inserters
+       *  @param  __n A variable of builtin integral type.
+       *  @return  @c *this if successful
+       *
+       *  These functions use the stream's current locale (specifically, the
+       *  @c num_get facet) to perform numeric formatting.
+      */
+      __ostream_type&
+      operator<<(long __n)
+      { return _M_insert(__n); }
+
+      __ostream_type&
+      operator<<(unsigned long __n)
+      { return _M_insert(__n); }
+
+      __ostream_type&
+      operator<<(bool __n)
+      { return _M_insert(__n); }
+
+      __ostream_type&
+      operator<<(short __n);
+
+      __ostream_type&
+      operator<<(unsigned short __n)
+      {
+	
+	
+	return _M_insert(static_cast<unsigned long>(__n));
+      }
+
+      __ostream_type&
+      operator<<(int __n);
+
+      __ostream_type&
+      operator<<(unsigned int __n)
+      {
+	
+	
+	return _M_insert(static_cast<unsigned long>(__n));
+      }
+
+#ifdef _GLIBCXX_USE_LONG_LONG
+      __ostream_type&
+      operator<<(long long __n)
+      { return _M_insert(__n); }
+
+      __ostream_type&
+      operator<<(unsigned long long __n)
+      { return _M_insert(__n); }
+#endif
+      
+
+      
+      /**
+       *  @brief  Floating point arithmetic inserters
+       *  @param  __f A variable of builtin floating point type.
+       *  @return  @c *this if successful
+       *
+       *  These functions use the stream's current locale (specifically, the
+       *  @c num_get facet) to perform numeric formatting.
+      */
+      __ostream_type&
+      operator<<(double __f)
+      { return _M_insert(__f); }
+
+      __ostream_type&
+      operator<<(float __f)
+      {
+	
+	
+	return _M_insert(static_cast<double>(__f));
+      }
+
+      __ostream_type&
+      operator<<(long double __f)
+      { return _M_insert(__f); }
+      
+
+      /**
+       *  @brief  Pointer arithmetic inserters
+       *  @param  __p A variable of pointer type.
+       *  @return  @c *this if successful
+       *
+       *  These functions use the stream's current locale (specifically, the
+       *  @c num_get facet) to perform numeric formatting.
+      */
+      __ostream_type&
+      operator<<(const void* __p)
+      { return _M_insert(__p); }
+
+#if __cplusplus >= 201703L
+      __ostream_type&
+      operator<<(nullptr_t)
+      { return *this << "nullptr"; }
+#endif
+
+      /**
+       *  @brief  Extracting from another streambuf.
+       *  @param  __sb  A pointer to a streambuf
+       *
+       *  This function behaves like one of the basic arithmetic extractors,
+       *  in that it also constructs a sentry object and has the same error
+       *  handling behavior.
+       *
+       *  If @p __sb is NULL, the stream will set failbit in its error state.
+       *
+       *  Characters are extracted from @p __sb and inserted into @c *this
+       *  until one of the following occurs:
+       *
+       *  - the input stream reaches end-of-file,
+       *  - insertion into the output sequence fails (in this case, the
+       *    character that would have been inserted is not extracted), or
+       *  - an exception occurs while getting a character from @p __sb, which
+       *    sets failbit in the error state
+       *
+       *  If the function inserts no characters, failbit is set.
+      */
+      __ostream_type&
+      operator<<(__streambuf_type* __sb);
+      
+
+      
+      /**
+       *  @name Unformatted Output Functions
+       *
+       *  All the unformatted output functions have some common behavior.
+       *  Each starts by constructing a temporary object of type
+       *  std::basic_ostream::sentry.  This has several effects, concluding
+       *  with the setting of a status flag; see the sentry documentation
+       *  for more.
+       *
+       *  If the sentry status is good, the function tries to generate
+       *  whatever data is appropriate for the type of the argument.
+       *
+       *  If an exception is thrown during insertion, ios_base::badbit
+       *  will be turned on in the stream's error state.  If badbit is on in
+       *  the stream's exceptions mask, the exception will be rethrown
+       *  without completing its actions.
+      */
+
+      /**
+       *  @brief  Simple insertion.
+       *  @param  __c  The character to insert.
+       *  @return  *this
+       *
+       *  Tries to insert @p __c.
+       *
+       *  @note  This function is not overloaded on signed char and
+       *         unsigned char.
+      */
+      __ostream_type&
+      put(char_type __c);
+
+      /**
+       *  @brief  Core write functionality, without sentry.
+       *  @param  __s  The array to insert.
+       *  @param  __n  Maximum number of characters to insert.
+      */
+      void
+      _M_write(const char_type* __s, streamsize __n)
+      {
+	const streamsize __put = this->rdbuf()->sputn(__s, __n);
+	if (__put != __n)
+	  this->setstate(ios_base::badbit);
+      }
+
+      /**
+       *  @brief  Character string insertion.
+       *  @param  __s  The array to insert.
+       *  @param  __n  Maximum number of characters to insert.
+       *  @return  *this
+       *
+       *  Characters are copied from @p __s and inserted into the stream until
+       *  one of the following happens:
+       *
+       *  - @p __n characters are inserted
+       *  - inserting into the output sequence fails (in this case, badbit
+       *    will be set in the stream's error state)
+       *
+       *  @note  This function is not overloaded on signed char and
+       *         unsigned char.
+      */
+      __ostream_type&
+      write(const char_type* __s, streamsize __n);
+      
+
+      /**
+       *  @brief  Synchronizing the stream buffer.
+       *  @return  *this
+       *
+       *  If @c rdbuf() is a null pointer, changes nothing.
+       *
+       *  Otherwise, calls @c rdbuf()->pubsync(), and if that returns -1,
+       *  sets badbit.
+      */
+      __ostream_type&
+      flush();
+
+      /**
+       *  @brief  Getting the current write position.
+       *  @return  A file position object.
+       *
+       *  If @c fail() is not false, returns @c pos_type(-1) to indicate
+       *  failure.  Otherwise returns @c rdbuf()->pubseekoff(0,cur,out).
+      */
+      pos_type
+      tellp();
+
+      /**
+       *  @brief  Changing the current write position.
+       *  @param  __pos  A file position object.
+       *  @return  *this
+       *
+       *  If @c fail() is not true, calls @c rdbuf()->pubseekpos(pos).  If
+       *  that function fails, sets failbit.
+      */
+      __ostream_type&
+      seekp(pos_type);
+
+      /**
+       *  @brief  Changing the current write position.
+       *  @param  __off  A file offset object.
+       *  @param  __dir  The direction in which to seek.
+       *  @return  *this
+       *
+       *  If @c fail() is not true, calls @c rdbuf()->pubseekoff(off,dir).
+       *  If that function fails, sets failbit.
+      */
+       __ostream_type&
+      seekp(off_type, ios_base::seekdir);
+
+    protected:
+      basic_ostream()
+      { this->init(0); }
+
+#if __cplusplus >= 201103L
+      
+      basic_ostream(basic_iostream<_CharT, _Traits>&) { }
+
+      basic_ostream(const basic_ostream&) = delete;
+
+      basic_ostream(basic_ostream&& __rhs)
+      : __ios_type()
+      { __ios_type::move(__rhs); }
+
+      
+
+      basic_ostream& operator=(const basic_ostream&) = delete;
+
+      basic_ostream&
+      operator=(basic_ostream&& __rhs)
+      {
+	swap(__rhs);
+	return *this;
+      }
+
+      void
+      swap(basic_ostream& __rhs)
+      { __ios_type::swap(__rhs); }
+#endif
+
+      template<typename _ValueT>
+	__ostream_type&
+	_M_insert(_ValueT __v);
+    };
+
+  /**
+   *  @brief  Performs setup work for output streams.
+   *
+   *  Objects of this class are created before all of the standard
+   *  inserters are run.  It is responsible for <em>exception-safe prefix and
+   *  suffix operations</em>.
+  */
+  template <typename _CharT, typename _Traits>
+    class basic_ostream<_CharT, _Traits>::sentry
+    {
+      
+      bool 				_M_ok;
+      basic_ostream<_CharT, _Traits>& 	_M_os;
+
+    public:
+      /**
+       *  @brief  The constructor performs preparatory work.
+       *  @param  __os  The output stream to guard.
+       *
+       *  If the stream state is good (@a __os.good() is true), then if the
+       *  stream is tied to another output stream, @c is.tie()->flush()
+       *  is called to synchronize the output sequences.
+       *
+       *  If the stream state is still good, then the sentry state becomes
+       *  true (@a okay).
+      */
+      explicit
+      sentry(basic_ostream<_CharT, _Traits>& __os);
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+      /**
+       *  @brief  Possibly flushes the stream.
+       *
+       *  If @c ios_base::unitbuf is set in @c os.flags(), and
+       *  @c std::uncaught_exception() is true, the sentry destructor calls
+       *  @c flush() on the output stream.
+      */
+      ~sentry()
+      {
+	
+	if (bool(_M_os.flags() & ios_base::unitbuf) && !uncaught_exception())
+	  {
+	    
+	    if (_M_os.rdbuf() && _M_os.rdbuf()->pubsync() == -1)
+	      _M_os.setstate(ios_base::badbit);
+	  }
+      }
+#pragma GCC diagnostic pop
+
+      /**
+       *  @brief  Quick status checking.
+       *  @return  The sentry state.
+       *
+       *  For ease of use, sentries may be converted to booleans.  The
+       *  return value is that of the sentry state (true == okay).
+      */
+#if __cplusplus >= 201103L
+      explicit
+#endif
+      operator bool() const
+      { return _M_ok; }
+    };
+
+  
+  /**
+   *  @brief  Character inserters
+   *  @param  ___out  An output stream.
+   *  @param  __c  A character.
+   *  @return  out
+   *
+   *  Behaves like one of the formatted arithmetic inserters described in
+   *  std::basic_ostream.  After constructing a sentry object with good
+   *  status, this function inserts a single character and any required
+   *  padding (as determined by [22.2.2.2.2]).  @c ___out.width(0) is then
+   *  called.
+   *
+   *  If @p __c is of type @c char and the character type of the stream is not
+   *  @c char, the character is widened before insertion.
+  */
+  template<typename _CharT, typename _Traits>
+    inline basic_ostream<_CharT, _Traits>&
+    operator<<(basic_ostream<_CharT, _Traits>& ___out, _CharT __c)
+    { return __ostream_insert(___out, &__c, 1); }
+
+  template<typename _CharT, typename _Traits>
+    inline basic_ostream<_CharT, _Traits>&
+    operator<<(basic_ostream<_CharT, _Traits>& ___out, char __c)
+    { return (___out << ___out.widen(__c)); }
+
+  
+  template<typename _Traits>
+    inline basic_ostream<char, _Traits>&
+    operator<<(basic_ostream<char, _Traits>& ___out, char __c)
+    { return __ostream_insert(___out, &__c, 1); }
+
+  
+  template<typename _Traits>
+    inline basic_ostream<char, _Traits>&
+    operator<<(basic_ostream<char, _Traits>& ___out, signed char __c)
+    { return (___out << static_cast<char>(__c)); }
+
+  template<typename _Traits>
+    inline basic_ostream<char, _Traits>&
+    operator<<(basic_ostream<char, _Traits>& ___out, unsigned char __c)
+    { return (___out << static_cast<char>(__c)); }
+
+#if __cplusplus > 201703L
+  
+  
+
+#ifdef _GLIBCXX_USE_WCHAR_T
+  template<typename _Traits>
+    basic_ostream<char, _Traits>&
+    operator<<(basic_ostream<char, _Traits>&, wchar_t) = delete;
+#endif 
+
+#ifdef _GLIBCXX_USE_CHAR8_T
+  template<typename _Traits>
+    basic_ostream<char, _Traits>&
+    operator<<(basic_ostream<char, _Traits>&, char8_t) = delete;
+#endif
+
+  template<typename _Traits>
+    basic_ostream<char, _Traits>&
+    operator<<(basic_ostream<char, _Traits>&, char16_t) = delete;
+
+  template<typename _Traits>
+    basic_ostream<char, _Traits>&
+    operator<<(basic_ostream<char, _Traits>&, char32_t) = delete;
+
+#ifdef _GLIBCXX_USE_WCHAR_T
+#ifdef _GLIBCXX_USE_CHAR8_T
+  template<typename _Traits>
+    basic_ostream<wchar_t, _Traits>&
+    operator<<(basic_ostream<wchar_t, _Traits>&, char8_t) = delete;
+#endif 
+
+  template<typename _Traits>
+    basic_ostream<wchar_t, _Traits>&
+    operator<<(basic_ostream<wchar_t, _Traits>&, char16_t) = delete;
+
+  template<typename _Traits>
+    basic_ostream<wchar_t, _Traits>&
+    operator<<(basic_ostream<wchar_t, _Traits>&, char32_t) = delete;
+#endif 
+#endif 
+  
+
+  
+  /**
+   *  @brief  String inserters
+   *  @param  ___out  An output stream.
+   *  @param  __s  A character string.
+   *  @return  out
+   *  @pre  @p __s must be a non-NULL pointer
+   *
+   *  Behaves like one of the formatted arithmetic inserters described in
+   *  std::basic_ostream.  After constructing a sentry object with good
+   *  status, this function inserts @c traits::length(__s) characters starting
+   *  at @p __s, widened if necessary, followed by any required padding (as
+   *  determined by [22.2.2.2.2]).  @c ___out.width(0) is then called.
+  */
+  template<typename _CharT, typename _Traits>
+    inline basic_ostream<_CharT, _Traits>&
+    operator<<(basic_ostream<_CharT, _Traits>& ___out, const _CharT* __s)
+    {
+      if (!__s)
+	___out.setstate(ios_base::badbit);
+      else
+	__ostream_insert(___out, __s,
+			 static_cast<streamsize>(_Traits::length(__s)));
+      return ___out;
+    }
+
+  template<typename _CharT, typename _Traits>
+    basic_ostream<_CharT, _Traits> &
+    operator<<(basic_ostream<_CharT, _Traits>& ___out, const char* __s);
+
+  
+  template<typename _Traits>
+    inline basic_ostream<char, _Traits>&
+    operator<<(basic_ostream<char, _Traits>& ___out, const char* __s)
+    {
+      if (!__s)
+	___out.setstate(ios_base::badbit);
+      else
+	__ostream_insert(___out, __s,
+			 static_cast<streamsize>(_Traits::length(__s)));
+      return ___out;
+    }
+
+  
+  template<typename _Traits>
+    inline basic_ostream<char, _Traits>&
+    operator<<(basic_ostream<char, _Traits>& ___out, const signed char* __s)
+    { return (___out << reinterpret_cast<const char*>(__s)); }
+
+  template<typename _Traits>
+    inline basic_ostream<char, _Traits> &
+    operator<<(basic_ostream<char, _Traits>& ___out, const unsigned char* __s)
+    { return (___out << reinterpret_cast<const char*>(__s)); }
+
+#if __cplusplus > 201703L
+   
+   
+
+#ifdef _GLIBCXX_USE_WCHAR_T
+  template<typename _Traits>
+    basic_ostream<char, _Traits>&
+    operator<<(basic_ostream<char, _Traits>&, const wchar_t*) = delete;
+#endif 
+
+#ifdef _GLIBCXX_USE_CHAR8_T
+  template<typename _Traits>
+    basic_ostream<char, _Traits>&
+    operator<<(basic_ostream<char, _Traits>&, const char8_t*) = delete;
+#endif 
+
+  template<typename _Traits>
+    basic_ostream<char, _Traits>&
+    operator<<(basic_ostream<char, _Traits>&, const char16_t*) = delete;
+
+  template<typename _Traits>
+    basic_ostream<char, _Traits>&
+    operator<<(basic_ostream<char, _Traits>&, const char32_t*) = delete;
+
+#ifdef _GLIBCXX_USE_WCHAR_T
+#ifdef _GLIBCXX_USE_CHAR8_T
+  template<typename _Traits>
+    basic_ostream<wchar_t, _Traits>&
+    operator<<(basic_ostream<wchar_t, _Traits>&, const char8_t*) = delete;
+#endif
+
+  template<typename _Traits>
+    basic_ostream<wchar_t, _Traits>&
+    operator<<(basic_ostream<wchar_t, _Traits>&, const char16_t*) = delete;
+
+  template<typename _Traits>
+    basic_ostream<wchar_t, _Traits>&
+    operator<<(basic_ostream<wchar_t, _Traits>&, const char32_t*) = delete;
+#endif 
+#endif 
+  
+
+  
+
+  /**
+   *  @brief  Write a newline and flush the stream.
+   *
+   *  This manipulator is often mistakenly used when a simple newline is
+   *  desired, leading to poor buffering performance.  See
+   *  https:
+   *  for more on this subject.
+  */
+  template<typename _CharT, typename _Traits>
+    inline basic_ostream<_CharT, _Traits>&
+    endl(basic_ostream<_CharT, _Traits>& __os)
+    { return flush(__os.put(__os.widen('\n'))); }
+
+  /**
+   *  @brief  Write a null character into the output sequence.
+   *
+   *  <em>Null character</em> is @c CharT() by definition.  For CharT
+   *  of @c char, this correctly writes the ASCII @c NUL character
+   *  string terminator.
+  */
+  template<typename _CharT, typename _Traits>
+    inline basic_ostream<_CharT, _Traits>&
+    ends(basic_ostream<_CharT, _Traits>& __os)
+    { return __os.put(_CharT()); }
+
+  /**
+   *  @brief  Flushes the output stream.
+   *
+   *  This manipulator simply calls the stream's @c flush() member function.
+  */
+  template<typename _CharT, typename _Traits>
+    inline basic_ostream<_CharT, _Traits>&
+    flush(basic_ostream<_CharT, _Traits>& __os)
+    { return __os.flush(); }
+
+#if __cplusplus >= 201103L
+  template<typename _Ch, typename _Up>
+    basic_ostream<_Ch, _Up>&
+    __is_convertible_to_basic_ostream_test(basic_ostream<_Ch, _Up>*);
+
+  template<typename _Tp, typename = void>
+    struct __is_convertible_to_basic_ostream_impl
+    {
+      using __ostream_type = void;
+    };
+
+  template<typename _Tp>
+    using __do_is_convertible_to_basic_ostream_impl =
+    decltype(__is_convertible_to_basic_ostream_test
+	     (declval<typename remove_reference<_Tp>::type*>()));
+
+  template<typename _Tp>
+    struct __is_convertible_to_basic_ostream_impl
+    <_Tp,
+     __void_t<__do_is_convertible_to_basic_ostream_impl<_Tp>>>
+    {
+      using __ostream_type =
+	__do_is_convertible_to_basic_ostream_impl<_Tp>;
+    };
+
+  template<typename _Tp>
+    struct __is_convertible_to_basic_ostream
+    : __is_convertible_to_basic_ostream_impl<_Tp>
+    {
+    public:
+      using type = __not_<is_void<
+        typename __is_convertible_to_basic_ostream_impl<_Tp>::__ostream_type>>;
+      constexpr static bool value = type::value;
+    };
+
+  template<typename _Ostream, typename _Tp, typename = void>
+    struct __is_insertable : false_type {};
+
+  template<typename _Ostream, typename _Tp>
+    struct __is_insertable<_Ostream, _Tp,
+			   __void_t<decltype(declval<_Ostream&>()
+					     << declval<const _Tp&>())>>
+				    : true_type {};
+
+  template<typename _Ostream>
+    using __rvalue_ostream_type =
+      typename __is_convertible_to_basic_ostream<
+	_Ostream>::__ostream_type;
+
+  /**
+   *  @brief  Generic inserter for rvalue stream
+   *  @param  __os  An input stream.
+   *  @param  __x  A reference to the object being inserted.
+   *  @return  os
+   *
+   *  This is just a forwarding function to allow insertion to
+   *  rvalue streams since they won't bind to the inserter functions
+   *  that take an lvalue reference.
+  */
+  template<typename _Ostream, typename _Tp>
+    inline
+    typename enable_if<__and_<__not_<is_lvalue_reference<_Ostream>>,
+			      __is_convertible_to_basic_ostream<_Ostream>,
+			      __is_insertable<
+				__rvalue_ostream_type<_Ostream>,
+				const _Tp&>>::value,
+		       __rvalue_ostream_type<_Ostream>>::type
+    operator<<(_Ostream&& __os, const _Tp& __x)
+    {
+      __rvalue_ostream_type<_Ostream> __ret_os = __os;
+      __ret_os << __x;
+      return __ret_os;
+    }
+#endif 
+
+_GLIBCXX_END_NAMESPACE_VERSION
+} 
+
+#include <bits/ostream.tcc>
+
+#endif	/* _GLIBCXX_OSTREAM */
+
+#include <istream>
+
+namespace std _GLIBCXX_VISIBILITY(default)
+{
+_GLIBCXX_BEGIN_NAMESPACE_VERSION
+
+  /**
+   *  @name Standard Stream Objects
+   *
+   *  The &lt;iostream&gt; header declares the eight <em>standard stream
+   *  objects</em>.  For other declarations, see
+   *  http:
+   *  and the @link iosfwd I/O forward declarations @endlink
+   *
+   *  They are required by default to cooperate with the global C
+   *  library's @c FILE streams, and to be available during program
+   *  startup and termination. For more information, see the section of the
+   *  manual linked to above.
+  */
+  
+  extern istream cin;		
+  extern ostream cout;		
+  extern ostream cerr;		
+  extern ostream clog;		
+
+#ifdef _GLIBCXX_USE_WCHAR_T
+  extern wistream wcin;		
+  extern wostream wcout;	
+  extern wostream wcerr;	
+  extern wostream wclog;	
+#endif
+  
+
+  
+  static ios_base::Init __ioinit;
+
+_GLIBCXX_END_NAMESPACE_VERSION
+} 
+
+#endif /* _GLIBCXX_IOSTREAM */
+
+using namespace std;
+string str;
+int a[10];
+int main(){
+	cin>>str;
+	for(int i=0;i<str.size();i++)
+	{
+		if(str[i]=='1'||str[i]=='Q'||str[i]=='A'||str[i]=='Z')
+			a[1]++;
+		if(str[i]=='2'||str[i]=='W'||str[i]=='S'||str[i]=='X')
+			a[2]++;
+		if(str[i]=='3'||str[i]=='E'||str[i]=='D'||str[i]=='C')
+			a[3]++;
+		if(str[i]=='4'||str[i]=='R'||str[i]=='F'||str[i]=='V'||str[i]=='5'||str[i]=='T'||str[i]=='G'||str[i]=='B')
+			a[4]++;
+		if(str[i]=='6'||str[i]=='Y'||str[i]=='H'||str[i]=='N'||str[i]=='7'||str[i]=='U'||str[i]=='J'||str[i]=='M')
+			a[5]++;
+		if(str[i]=='8'||str[i]=='I'||str[i]=='K'||str[i]==',')
+			a[6]++;
+		if(str[i]=='9'||str[i]=='O'||str[i]=='L'||str[i]=='.')
+			a[7]++;
+		if(str[i]=='0'||str[i]=='P'||str[i]==';'||str[i]=='/'||str[i]=='-'||str[i]=='['||str[i]==']'||str[i]=='='||str[i]=='\'')
+			a[8]++;
+	}
+	for(int i=1;i<=8;i++)
+		cout<<a[i]<<endl;
+	return 0;
+}

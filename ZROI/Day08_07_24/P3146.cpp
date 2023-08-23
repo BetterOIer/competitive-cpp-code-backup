@@ -1,0 +1,2 @@
+#include<iostream>
+using namespace std;inline short read(){short x=0,f=1;char c=getchar();for(;!isdigit(c);c=getchar())if(c=='-')f=-1;for(;isdigit(c);c=getchar())x=(x<<3)+(x<<1)+(c^48);return x*f;}short dp[3000][3000],n;short AANNSS=0;int main(){n=read();for(short i=1;i<=n;i++){dp[i][i]=read();AANNSS=max(dp[i][i],AANNSS);}for(short k=2;k<=n;k++){for(short l=1;l<=n+1-k;l++){short r=l+k-1,ans=-1;for(short i=l;i<r;i++)if(dp[l][i]==dp[i+1][r]&&dp[l][i])ans=max(ans,(short)(dp[l][i]+1));dp[l][r]=ans;AANNSS=max(AANNSS,ans);}}cout<<AANNSS;return 0;}

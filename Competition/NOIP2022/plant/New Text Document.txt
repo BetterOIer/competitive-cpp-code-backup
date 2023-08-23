@@ -1,0 +1,80 @@
+#include <bits/stdc++.h>
+using namespace std;
+template <typename T>
+bool read_(T &ready_get)
+{
+	T x=0,f=1;
+	char ch=getchar();
+	while(!('0'<=ch&&ch<='9'))
+	{
+		if(ch=='-') f=-1;
+		if(ch==-1) return false;
+		ch=getchar();
+	}
+	while('0'<=ch&&ch<='9')
+	{
+		x=x*10+(ch-'0');
+		ch=getchar();
+	}
+	ready_get=f*x;
+	return true;
+}
+const long long mod=998244353;
+char a[1007][1007];
+int n,m;
+long long you[1007][1007],xia[1007][1007],Syou[1007][1007],Sxia[1007][1007],ansc,ansf;
+void init()
+{
+	memset(you,0,sizeof you);
+	memset(xia,0,sizeof xia);
+	memset(Syou,0,sizeof Syou);
+	memset(Sxia,0,sizeof Sxia);
+	for(int i=1;i<=n;++i)
+		you[i][m+1]=-1;
+	for(int j=1;j<=m;++j)
+		xia[n+1][j]=-1;
+	for(int i=1;i<=n;++i)
+		for(int j=m;j>=1;--j)
+			if(a[i][j]=='1') you[i][j]=-1;
+			else you[i][j]=you[i][j+1]+1;
+	for(int j=1;j<=m;++j)
+		for(int i=n;i>=1;--i)
+			if(a[i][j]=='1') xia[i][j]=-1;
+			else xia[i][j]=xia[i+1][j]+1;
+	for(int j=1;j<=m;++j)
+		for(int i=n;i>=1;--i)
+			if(a[i][j]=='1') Syou[i][j]=Sxia[i][j]=0;
+			else
+			{
+				Syou[i][j]=(Syou[i+1][j]+you[i][j])%mod;
+				Sxia[i][j]=(Sxia[i+1][j]+you[i][j]*xia[i][j]%mod)%mod;
+			}
+}
+void solve()
+{
+	ansc=ansf=0;
+	for(int i=1;i<=n-2;++i)
+		for(int j=1;j<=m-1;++j)
+		{
+			if(you[i][j]<0||you[i+1][j]<0) continue;
+			ansc=(ansc+you[i][j]*Syou[i+2][j]%mod)%mod;
+			ansf=(ansf+you[i][j]*Sxia[i+2][j]%mod)%mod;
+		}
+}
+int main()
+{
+	//freopen("plant.in","r",stdin);
+	//freopen("plant.out","w",stdout);
+	int T,id,c,f;
+	read_(T),read_(id);
+	while(T--)
+	{
+		read_(n),read_(m),read_(c),read_(f);
+		for(int i=1;i<=n;++i)
+			scanf("%s",a[i]+1);
+		init();
+		solve();
+		printf("%lld %lld\n",ansc*c%mod,ansf*f%mod);
+	}
+	return 0;
+}

@@ -1,0 +1,1 @@
+$O\left(\min\left\{n \cdot C_{2k}^k, \left(C_{2k}^k\right)^3 \log n\right\}\right)$
